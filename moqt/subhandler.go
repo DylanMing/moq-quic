@@ -2,6 +2,7 @@ package moqt
 
 import (
 	"math/rand"
+	"time"
 
 	"github.com/DineshAdhi/moq-go/moqt/wire"
 
@@ -76,14 +77,36 @@ func (sub *SubHandler) HandleSubscribeDone(msg *wire.SubscribeDone) {
 }
 
 func (sub *SubHandler) DoHandle() {
+	retryCount := 0
+	maxRetries := 10
+	retryDelay := 100 * time.Millisecond
 
 	for {
+		select {
+		case <-sub.ctx.Done():
+			sub.Slogger.Info().Msg("[Context cancelled, stopping SubHandler]")
+			return
+		default:
+		}
+
 		unistream, err := sub.Conn.AcceptUniStream(sub.ctx)
 
 		if err != nil {
-			sub.Slogger.Error().Msgf("[Error Accepting Unistream][%s]", err)
+			if sub.isConnectionAlive() {
+				retryCount++
+				if retryCount > maxRetries {
+					sub.Slogger.Error().Msgf("[Max retries reached, stopping SubHandler][%s]", err)
+					return
+				}
+				sub.Slogger.Warn().Msgf("[Temporary error accepting unistream, retrying (%d/%d)][%s]", retryCount, maxRetries, err)
+				time.Sleep(retryDelay)
+				continue
+			}
+			sub.Slogger.Error().Msgf("[Connection closed, stopping SubHandler][%s]", err)
 			return
 		}
+
+		retryCount = 0
 
 		reader := quicvarint.NewReader(unistream)
 		subid, stream, err := wire.ParseMOQTStream(reader)
@@ -98,6 +121,15 @@ func (sub *SubHandler) DoHandle() {
 		} else {
 			sub.Slogger.Error().Msgf("Received Header with unknown subid - %X", subid)
 		}
+	}
+}
+
+func (sub *SubHandler) isConnectionAlive() bool {
+	select {
+	case <-sub.ctx.Done():
+		return false
+	default:
+		return true
 	}
 }
 

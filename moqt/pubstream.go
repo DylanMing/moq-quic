@@ -2,8 +2,11 @@ package moqt
 
 import (
 	"io"
+	"time"
 
 	"github.com/DineshAdhi/moq-go/moqt/wire"
+
+	"github.com/quic-go/quic-go"
 )
 
 type PubStream struct {
@@ -52,9 +55,22 @@ func (pub *PubStream) NewStream(stream wire.MOQTStream) (wire.MOQTStream, error)
 
 	stream.WgAdd()
 
-	unistream, err := pub.session.Conn.OpenUniStream()
+	var unistream quic.SendStream
+	var err error
+	maxRetries := 5
+	retryDelay := 100 * time.Millisecond
+
+	for i := 0; i < maxRetries; i++ {
+		unistream, err = pub.session.Conn.OpenUniStream()
+		if err == nil {
+			break
+		}
+		pub.session.Slogger.Warn().Msgf("[Error opening unistream, retrying (%d/%d)][%s]", i+1, maxRetries, err)
+		time.Sleep(retryDelay)
+	}
 
 	if err != nil {
+		stream.WgDone()
 		return stream, err
 	}
 

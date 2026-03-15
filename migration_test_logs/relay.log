@@ -1,0 +1,10 @@
+[90mMar 16 02:23:00.000[0m [32mINF[0m [1mmoqlistener.go:39[0m[36m >[0m [1m[Loaded Certificates][Key - /Users/ming/Documents/moq-go/certs/key.pem][Cert - /Users/ming/Documents/moq-go/certs/cert.pem][0m
+[90mMar 16 02:23:00.000[0m [32mINF[0m [1mmoqlistener.go:74[0m[36m >[0m [1m[QUIC Listener][Listening on - 0.0.0.0:4443][0m
+[90mMar 16 02:23:02.000[0m [32mINF[0m [1msessionmanager.go:39[0m[36m >[0m [1m[7abb0486][New MOQT Session][0m
+[90mMar 16 02:23:02.000[0m [32mINF[0m [1mcontrolstream.go:101[0m[36m >[0m [1m[Handshake Success][0m [36mID=[0m7abb0486 [36mRemoteRole=[0mROLE_PUBLISHER
+[90mMar 16 02:23:02.000[0m [32mINF[0m [1mrelayhandler.go:174[0m[36m >[0m [1m[ANNOUNCE][Track Namespace - bbb][0m [36mID=[0m7abb0486 [36mRemoteRole=[0mROLE_PUBLISHER
+[90mMar 16 02:23:05.000[0m [32mINF[0m [1msessionmanager.go:39[0m[36m >[0m [1m[6da9f714][New MOQT Session][0m
+[90mMar 16 02:23:05.000[0m [32mINF[0m [1mcontrolstream.go:101[0m[36m >[0m [1m[Handshake Success][0m [36mID=[0m6da9f714 [36mRemoteRole=[0mROLE_SUBCRIBER
+[90mMar 16 02:23:05.000[0m [32mINF[0m [1mrelayhandler.go:200[0m[36m >[0m [1m[SUBSCRIBE][ID - BFB5A003][Filter Type - LatestGroup][Name - dumeel][Alias - 0][NameSpace - bbb][0m [36mID=[0m6da9f714 [36mRemoteRole=[0mROLE_SUBCRIBER
+[90mMar 16 02:23:05.000[0m [32mINF[0m [1mrelayhandler.go:54[0m[36m >[0m [1m[New Incoming Stream][SubID - aa7bb363][Stream ID - bbb_dumeel][0m [36mID=[0m7abb0486 [36mRemoteRole=[0mROLE_PUBLISHER
+[90mMar 16 02:23:05.000[0m [32mINF[0m [1mrelayhandler.go:185[0m[36m >[0m [1m[SubscribeOK][ID - AA7BB363][Expires - 1024][Content Exists - 0][L Group Id / Object Id - 0 / 0][0m [36mID=[0m7abb0486 [36mRemoteRole=[0mROLE_PUBLISHER

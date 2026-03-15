@@ -4,6 +4,7 @@ import (
 	"io"
 	"math/rand/v2"
 	"strings"
+	"time"
 
 	"github.com/DineshAdhi/moq-go/moqt/wire"
 
@@ -110,14 +111,36 @@ func (sub *RelayHandler) ProcessMOQTStream(stream wire.MOQTStream) {
 }
 
 func (publisher *RelayHandler) DoHandle() {
+	retryCount := 0
+	maxRetries := 10
+	retryDelay := 100 * time.Millisecond
 
 	for {
+		select {
+		case <-publisher.ctx.Done():
+			publisher.Slogger.Info().Msg("[Context cancelled, stopping RelayHandler]")
+			return
+		default:
+		}
+
 		unistream, err := publisher.Conn.AcceptUniStream(publisher.ctx)
 
 		if err != nil {
-			publisher.Slogger.Error().Msgf("[Error Accepting Unistream][%s]", err)
+			if publisher.isConnectionAlive() {
+				retryCount++
+				if retryCount > maxRetries {
+					publisher.Slogger.Error().Msgf("[Max retries reached, stopping RelayHandler][%s]", err)
+					return
+				}
+				publisher.Slogger.Warn().Msgf("[Temporary error accepting unistream, retrying (%d/%d)][%s]", retryCount, maxRetries, err)
+				time.Sleep(retryDelay)
+				continue
+			}
+			publisher.Slogger.Error().Msgf("[Connection closed, stopping RelayHandler][%s]", err)
 			return
 		}
+
+		retryCount = 0
 
 		reader := quicvarint.NewReader(unistream)
 
@@ -134,6 +157,15 @@ func (publisher *RelayHandler) DoHandle() {
 		} else {
 			log.Error().Msgf("[Stream not found for SubID - %X]", subid)
 		}
+	}
+}
+
+func (publisher *RelayHandler) isConnectionAlive() bool {
+	select {
+	case <-publisher.ctx.Done():
+		return false
+	default:
+		return true
 	}
 }
 
