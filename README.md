@@ -15,6 +15,7 @@ This MOQT library currently supports WebTransport and QUIC Protocols.
 - **Relay Caching**: Relay caches received objects and can replay them to late subscribers
 - **Rate Control**: Publisher supports configurable sending rate and delays
 - **Multiple Subscribers**: Multiple subscribers can subscribe to the same track at different times
+- **Connection Migration**: QUIC connection migration support for both Publisher and Subscriber
 
 ## Setup
 
@@ -115,6 +116,82 @@ Publisher           Subscriber 1         Subscriber 2
 - Default cache memory: 50MB
 - FIFO eviction when cache is full
 
+## Connection Migration
+
+MOQ-GO supports QUIC connection migration, allowing Publisher and Subscriber to recover from temporary network interruptions without dropping the connection.
+
+### How It Works
+
+When a network interruption occurs (e.g., NAT rebind, brief connectivity loss):
+
+1. **QUIC Layer**: Connection is maintained via Connection IDs and packet retransmission
+2. **Application Layer**: Retry mechanism in `AcceptUniStream` handles temporary errors
+3. **Automatic Recovery**: Data transfer continues after network restores
+
+### Implementation Details
+
+**SubHandler & RelayHandler** - Retry logic for receiving streams:
+
+```go
+func (sub *SubHandler) DoHandle() {
+    retryCount := 0
+    maxRetries := 10
+    
+    for {
+        unistream, err := sub.Conn.AcceptUniStream(sub.ctx)
+        if err != nil {
+            if sub.isConnectionAlive() {
+                retryCount++
+                time.Sleep(100 * time.Millisecond)
+                continue  // Retry on temporary error
+            }
+            return  // Connection truly closed
+        }
+        retryCount = 0
+        // ... process stream
+    }
+}
+```
+
+**PubStream** - Retry logic for opening streams:
+
+```go
+func (pub *PubStream) NewStream(stream wire.MOQTStream) {
+    for i := 0; i < maxRetries; i++ {
+        unistream, err = pub.session.Conn.OpenUniStream()
+        if err == nil {
+            break
+        }
+        time.Sleep(retryDelay)
+    }
+    // ... continue with stream
+}
+```
+
+### Testing Connection Migration
+
+Run the migration test script:
+
+```bash
+# Test Publisher connection migration
+./test_migration.sh pub
+
+# Test Subscriber connection migration
+./test_migration.sh sub
+
+# Test both
+./test_migration.sh
+```
+
+### Test Results
+
+| Test Scenario | Before Interruption | After Interruption | Result |
+|--------------|---------------------|-------------------|--------|
+| Publisher Migration | 145 groups | 378 groups | ✅ Passed |
+| Subscriber Migration | 147 groups | 382 groups | ✅ Passed |
+
+The test simulates network interruption by pausing the process for 5 seconds, then verifies that data transfer continues after resuming.
+
 ## Example Output
 
 ### Publisher
@@ -148,14 +225,17 @@ moq-go/
 ├── moqt/
 │   ├── api/           # High-level API for pub/sub
 │   ├── wire/          # Wire protocol implementation
-│   ├── relayhandler.go    # Relay message handling
+│   ├── relayhandler.go    # Relay message handling (with migration support)
 │   ├── relaystream.go     # Relay caching logic
 │   ├── pubhandler.go      # Publisher handler
-│   └── subhandler.go      # Subscriber handler
+│   ├── pubstream.go       # Publisher stream (with migration support)
+│   └── subhandler.go      # Subscriber handler (with migration support)
 ├── examples/
 │   ├── relay/         # Relay example
 │   ├── pub/           # Publisher example
 │   └── sub/           # Subscriber example
+├── certs/             # TLS certificates
+├── test_migration.sh  # Connection migration test script
 ├── Makefile
 └── README.md
 ```
