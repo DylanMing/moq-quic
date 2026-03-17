@@ -1,2 +1,10 @@
-[90mMar 16 02:26:00.000[0m [32mINF[0m [1mmoqlistener.go:39[0m[36m >[0m [1m[Loaded Certificates][Key - /Users/ming/Documents/moq-go/certs/key.pem][Cert - /Users/ming/Documents/moq-go/certs/cert.pem][0m
-[90mMar 16 02:26:00.000[0m [31mERR[0m [1mrelay.go:38[0m[36m >[0m [1m[Relay Listen Failed][listen udp 0.0.0.0:4443: bind: address already in use][0m
+[90mMar 17 18:35:33.000[0m [32mINF[0m [1mmoqlistener.go:39[0m[36m >[0m [1m[Loaded Certificates][Key - /Users/ming/Documents/moq-go/certs/key.pem][Cert - /Users/ming/Documents/moq-go/certs/cert.pem][0m
+[90mMar 17 18:35:33.000[0m [32mINF[0m [1mmoqlistener.go:74[0m[36m >[0m [1m[QUIC Listener][Listening on - 0.0.0.0:4443][0m
+[90mMar 17 18:35:35.000[0m [32mINF[0m [1msessionmanager.go:39[0m[36m >[0m [1m[ff0e6afb][New MOQT Session][0m
+[90mMar 17 18:35:35.000[0m [32mINF[0m [1mcontrolstream.go:101[0m[36m >[0m [1m[Handshake Success][0m [36mID=[0mff0e6afb [36mRemoteRole=[0mROLE_PUBLISHER
+[90mMar 17 18:35:35.000[0m [32mINF[0m [1mrelayhandler.go:174[0m[36m >[0m [1m[ANNOUNCE][Track Namespace - bbb][0m [36mID=[0mff0e6afb [36mRemoteRole=[0mROLE_PUBLISHER
+[90mMar 17 18:35:38.000[0m [32mINF[0m [1msessionmanager.go:39[0m[36m >[0m [1m[62612d95][New MOQT Session][0m
+[90mMar 17 18:35:38.000[0m [32mINF[0m [1mcontrolstream.go:101[0m[36m >[0m [1m[Handshake Success][0m [36mID=[0m62612d95 [36mRemoteRole=[0mROLE_SUBCRIBER
+[90mMar 17 18:35:38.000[0m [32mINF[0m [1mrelayhandler.go:200[0m[36m >[0m [1m[SUBSCRIBE][ID - DCA93292][Filter Type - LatestGroup][Name - dumeel][Alias - 0][NameSpace - bbb][0m [36mID=[0m62612d95 [36mRemoteRole=[0mROLE_SUBCRIBER
+[90mMar 17 18:35:38.000[0m [32mINF[0m [1mrelayhandler.go:54[0m[36m >[0m [1m[New Incoming Stream][SubID - bcebfb41][Stream ID - bbb_dumeel][0m [36mID=[0mff0e6afb [36mRemoteRole=[0mROLE_PUBLISHER
+[90mMar 17 18:35:38.000[0m [32mINF[0m [1mrelayhandler.go:185[0m[36m >[0m [1m[SubscribeOK][ID - BCEBFB41][Expires - 1024][Content Exists - 0][L Group Id / Object Id - 0 / 0][0m [36mID=[0mff0e6afb [36mRemoteRole=[0mROLE_PUBLISHER
