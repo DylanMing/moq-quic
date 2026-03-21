@@ -17,10 +17,10 @@ import (
 
 type WTSession struct {
 	quic.Stream
-	quicConn       quic.Connection
+	quicConn       *quic.Conn
 	ResponseWriter *h3.ResponseWriter
 	context        context.Context
-	uniStreamsChan chan quic.ReceiveStream
+	uniStreamsChan chan *quic.ReceiveStream
 }
 
 var DEFAULT_SETTINGS = []h3.Setting{
@@ -33,9 +33,7 @@ var DEFAULT_SETTINGS = []h3.Setting{
 	{Key: h3.SETTINGS_QPACK_BLOCKED_STREAMS, Value: 0},
 }
 
-func UpgradeWTS(quicConn quic.Connection) (*WTSession, *http.Request, error) {
-
-	// 1. Server opens a Uni-Stream and sends its Server SettingsFrame
+func UpgradeWTS(quicConn *quic.Conn) (*WTSession, *http.Request, error) {
 
 	serverstream, err := quicConn.OpenUniStream()
 
@@ -50,8 +48,6 @@ func UpgradeWTS(quicConn quic.Connection) (*WTSession, *http.Request, error) {
 	serverstream.Write(serverSettingFrame.GetBytes())
 
 	log.Debug().Msgf("[Sending Server Settings][%s]", serverSettingFrame.GetString())
-
-	// 2. Server accepts a Uni-Stream and reads the Client SettingsFrame
 
 	clientstream, err := quicConn.AcceptUniStream(context.TODO())
 	clientreader := quicvarint.NewReader(clientstream)
@@ -81,9 +77,7 @@ func UpgradeWTS(quicConn quic.Connection) (*WTSession, *http.Request, error) {
 
 	log.Debug().Msgf("[Received Client Settings][%s]", sFrame.GetString())
 
-	// 3. Server now accepts Bi-Direction Stream, read headers and respond on the same stream
-
-	rrStream, err := quicConn.AcceptStream(context.TODO()) // Request-Response Stream
+	rrStream, err := quicConn.AcceptStream(context.TODO())
 	rreader := quicvarint.NewReader(rrStream)
 
 	if err != nil {
@@ -121,7 +115,7 @@ func UpgradeWTS(quicConn quic.Connection) (*WTSession, *http.Request, error) {
 		quicConn:       quicConn,
 		ResponseWriter: responseWriter,
 		context:        context.TODO(),
-		uniStreamsChan: make(chan quic.ReceiveStream, 1024),
+		uniStreamsChan: make(chan *quic.ReceiveStream, 1024),
 	}
 
 	req.Body = wts
@@ -136,7 +130,7 @@ func (wts *WTSession) AcceptSession() {
 	go wts.ProcesUniStreams()
 }
 
-func (wts *WTSession) AcceptStream(ctx context.Context) (quic.Stream, error) {
+func (wts *WTSession) AcceptStream(ctx context.Context) (*quic.Stream, error) {
 	stream, err := wts.quicConn.AcceptStream(ctx)
 
 	if err != nil {
@@ -173,7 +167,7 @@ func (wts *WTSession) ProcesUniStreams() {
 
 		if err != nil {
 			if err, ok := err.(net.Error); ok && err.Timeout() {
-				continue // Ignoring (Timeout / Blocking) Streams for now. Probably H3 PUSH Streams.
+				continue
 			}
 
 			log.Error().Msgf("[WTS][Error Reading UniStream][%s]", err)
@@ -186,11 +180,11 @@ func (wts *WTSession) ProcesUniStreams() {
 	}
 }
 
-func (wts *WTSession) AcceptUniStream(ctx context.Context) (quic.ReceiveStream, error) {
+func (wts *WTSession) AcceptUniStream(ctx context.Context) (*quic.ReceiveStream, error) {
 	return <-wts.uniStreamsChan, nil
 }
 
-func (wts *WTSession) OpenUniStreamSync(ctx context.Context) (quic.SendStream, error) {
+func (wts *WTSession) OpenUniStreamSync(ctx context.Context) (*quic.SendStream, error) {
 	stream, err := wts.quicConn.OpenUniStreamSync(ctx)
 
 	if err != nil {
@@ -206,7 +200,7 @@ func (wts *WTSession) OpenUniStreamSync(ctx context.Context) (quic.SendStream, e
 	return stream, nil
 }
 
-func (wts *WTSession) OpenStream() (quic.Stream, error) {
+func (wts *WTSession) OpenStream() (*quic.Stream, error) {
 	stream, err := wts.quicConn.OpenStream()
 
 	if err != nil {
@@ -222,7 +216,7 @@ func (wts *WTSession) OpenStream() (quic.Stream, error) {
 	return stream, nil
 }
 
-func (wts *WTSession) OpenUniStream() (quic.SendStream, error) {
+func (wts *WTSession) OpenUniStream() (*quic.SendStream, error) {
 	stream, err := wts.quicConn.OpenUniStream()
 
 	if err != nil {

@@ -16,12 +16,12 @@ import (
 var sm *SessionManager = NewSessionManager()
 
 type MOQTConnection interface {
-	AcceptStream(context context.Context) (quic.Stream, error)
-	AcceptUniStream(context context.Context) (quic.ReceiveStream, error)
+	AcceptStream(context context.Context) (*quic.Stream, error)
+	AcceptUniStream(context context.Context) (*quic.ReceiveStream, error)
 	CloseWithError(quic.ApplicationErrorCode, string) error
-	OpenUniStreamSync(ctx context.Context) (quic.SendStream, error)
-	OpenUniStream() (quic.SendStream, error)
-	OpenStream() (quic.Stream, error)
+	OpenUniStreamSync(ctx context.Context) (*quic.SendStream, error)
+	OpenUniStream() (*quic.SendStream, error)
+	OpenStream() (*quic.Stream, error)
 }
 
 const (

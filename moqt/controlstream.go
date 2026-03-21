@@ -13,11 +13,11 @@ import (
 
 type ControlStream struct {
 	*MOQTSession
-	stream          quic.Stream
+	stream          *quic.Stream
 	ishandshakedone bool
 }
 
-func NewControlStream(session *MOQTSession, stream quic.Stream) *ControlStream {
+func NewControlStream(session *MOQTSession, stream *quic.Stream) *ControlStream {
 	cs := &ControlStream{session, stream, false}
 	return cs
 }

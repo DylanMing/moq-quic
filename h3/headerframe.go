@@ -30,12 +30,20 @@ func (hframe *HeaderFrame) Parse(reader quicvarint.Reader) error {
 	data := make([]byte, length)
 	io.ReadFull(reader, data)
 
-	decoder := qpack.NewDecoder(nil)
-	hfs, err := decoder.DecodeFull(data)
+	decoder := qpack.NewDecoder()
+	decodeFunc := decoder.Decode(data)
 
-	if err != nil {
-		log.Debug().Msgf("[Error Parsing HFs][Data - %s]", string(data))
-		return err
+	var hfs []qpack.HeaderField
+	for {
+		hf, err := decodeFunc()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Debug().Msgf("[Error Parsing HFs][Data - %s]", string(data))
+			return err
+		}
+		hfs = append(hfs, hf)
 	}
 
 	hframe.hfs = hfs

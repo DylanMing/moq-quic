@@ -55,7 +55,7 @@ func (pub *PubStream) NewStream(stream wire.MOQTStream) (wire.MOQTStream, error)
 
 	stream.WgAdd()
 
-	var unistream quic.SendStream
+	var unistream *quic.SendStream
 	var err error
 	maxRetries := 5
 	retryDelay := 100 * time.Millisecond

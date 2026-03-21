@@ -11,12 +11,12 @@ import (
 )
 
 type ResponseWriter struct {
-	stream         quic.Stream
+	stream         *quic.Stream
 	header         http.Header
 	bufferedStream *bufio.Writer
 }
 
-func NewResponseWriter(stream quic.Stream) *ResponseWriter {
+func NewResponseWriter(stream *quic.Stream) *ResponseWriter {
 	return &ResponseWriter{
 		stream:         stream,
 		bufferedStream: bufio.NewWriter(stream),
